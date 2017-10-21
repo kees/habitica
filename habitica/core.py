@@ -612,6 +612,7 @@ def cli():
     cast smart <spell> [<id>]  After smart-check, cast <spell> (on task <id>)
     gems                       Buy gems until you can't
     armoire                    Buy something from the armoire
+    armoire empty              Empty the armoire of equipment
     buy-health                 Buy a health potion
     walk                       List available pets to walk
     walk <pet>                 Walk (equip) the <pet> pet
@@ -1099,13 +1100,28 @@ def cli():
         show_delta(hbt, before_user, user)
 
     elif args['<command>'] == 'armoire':
-        user = hbt.user()
-        before_user = user
-        purchase = api.Habitica(auth=auth, resource="user",
-                                aspect="buy-armoire")
-        purchase(_method='post')
-        user = hbt.user()
-        show_delta(hbt, before_user, user)
+        def do_purchase(empty=False):
+            user = hbt.user()
+            before_user = user
+            # don't buy anything if it is already empty
+            if empty and user['flags']['armoireEmpty']:
+                return 'empty'
+            purchase = api.Habitica(auth=auth, resource="user",
+                                    aspect="buy-armoire")
+            purchase(_method='post')
+            user = hbt.user()
+            show_delta(hbt, before_user, user)
+            if user['flags']['armoireEmpty']:
+                return 'empty'
+
+        if args['<args>'] == ['empty']:
+            while True:
+                result = do_purchase(empty=True)
+                if result == 'empty':
+                    print("The armoire is now empty!")
+                    break
+        else:
+            do_purchase()
 
     elif args['<command>'] == 'buy-health':
         user = hbt.user()
