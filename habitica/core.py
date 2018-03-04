@@ -215,26 +215,28 @@ def find_pet_to_feed(pets, items, suffix, finicky):
     rare = [ 'Wolf-Veteran', 'Wolf-Cerberus', 'Dragon-Hydra',
              'Turkey-Base', 'BearCub-Polar', 'MantisShrimp-Base',
              'JackOLantern-Base', 'Mammoth-Base', 'Tiger-Veteran',
-             'Phoenix-Base', 'Turkey-Gilded' ]
+             'Phoenix-Base', 'Turkey-Gilded',
+             'JackOLantern-Ghost', 'Jackalope-RoyalPurple' ]
 
     mouth = None
     best = 0
+
     for pet in pets:
         fed = items['pets'][pet]
 
         # Unhatched pet.
         if fed <= 0:
-            #print("Unhatched: %s" % (pet))
+            # print("Unhatched: %s" % (pet))
             continue
         # Unfeedable pet.
         if pet in rare:
             continue
         if items['mounts'].get(pet, 0) == 1 and fed == 5:
-            #print("Has mount: %s" % (pet))
+            # print("Has mount: %s" % (pet))
             continue
         # Not best food match.
         if finicky and not pet.endswith('-%s' % (suffix)):
-            #print("Not a match for %s: %s" % (food, pet))
+            # print("Not a match for %s: %s" % (suffix, pet))
             continue
 
         # Feed the pet that is closest to becoming a mount.
@@ -614,6 +616,7 @@ def cli():
     armoire                    Buy something from the armoire
     armoire empty              Empty the armoire of equipment
     buy-health                 Buy a health potion
+    mystery-item               Open the mystery item box
     walk                       List available pets to walk
     walk <pet>                 Walk (equip) the <pet> pet
     walk random                Walk (equip) a random pet
@@ -697,7 +700,8 @@ def cli():
             for pet in pets:
                 if pet.split('-')[1] in ['Spooky', 'Peppermint', 'Floral',
                         'Thunderstorm', 'Ghost', 'Cupid', 'Shimmer',
-                        'Fairy', 'Floral', 'Aquatic', 'Ember', 'Holly']:
+                        'Fairy', 'Floral', 'Aquatic', 'Ember', 'Holly',
+                        'StarryNight', 'RoyalPurple']:
                     magic_pets.append(pet)
 
             for food in foods:
@@ -728,6 +732,7 @@ def cli():
                 # magic pet which will eat anything.
                 if not mouth:
                     mouth = find_pet_to_feed(magic_pets, items, suffix, False)
+                    # print("Want to feed magic pet %s" % mouth)
 
                 if mouth:
                     before = pets[mouth]
@@ -1128,6 +1133,15 @@ def cli():
         before_user = user
         purchase = api.Habitica(auth=auth, resource="user",
                                 aspect="buy-health-potion")
+        purchase(_method='post')
+        user = hbt.user()
+        show_delta(hbt, before_user, user)
+
+    elif args['<command>'] == 'mystery-item':
+        user = hbt.user()
+        before_user = user
+        purchase = api.Habitica(auth=auth, resource="user",
+                                aspect="open-mystery-item")
         purchase(_method='post')
         user = hbt.user()
         show_delta(hbt, before_user, user)
